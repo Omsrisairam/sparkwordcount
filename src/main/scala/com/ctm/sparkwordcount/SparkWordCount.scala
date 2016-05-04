@@ -30,7 +30,7 @@
 
         // Create a SparkContext with this configuration
         val sc = new SparkContext(conf.setAppName("SparkWordCount"))
-      val textFile = sc.textFile("/Users/skudumula/Spark/sparkprojects/sparkwordcountmaven/src/main/resources/inputfile.txt")
+      val textFile = sc.textFile("src/main/resources/inputfile.txt")
       val counts = textFile.flatMap(line => line.split(" ")).map(word => (word, 1)).reduceByKey(_ + _)
       counts.foreach(println)
       counts.take(50).foreach(println)
