@@ -13,7 +13,7 @@
     logger.setLevel(Level.INFO)
       def main(args: Array[String]) {
         try {
-          prop.load(new FileInputStream("src/main/resources/job.properties"))
+          prop.load(new FileInputStream("config.properties"))
         } catch { case e: Exception =>
           logger.error("Spark Wordcount template properties file not found" + e.printStackTrace())
         }
@@ -32,7 +32,7 @@
         val textFile = sc.textFile(inputFile)
       val counts = textFile.flatMap(line => line.split(" ")).map(word => (word, 1)).reduceByKey(_ + _)
       counts.foreach(println)
-      counts.take(50).foreach(println)
+
         val cnt = counts.count()
         logger.info("Count for the total number of words in the whole file is " + cnt)
     }
