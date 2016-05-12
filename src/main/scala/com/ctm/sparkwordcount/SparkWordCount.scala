@@ -1,38 +1,39 @@
-  /**
-   * Licensed to the Apache Software Foundation (ASF) under one
-   * or more contributor license agreements.  See the NOTICE file
-   * distributed with this work for additional information
-   * regarding copyright ownership.  The ASF licenses this file
-   * to you under the Apache License, Version 2.0 (the
-   * "License"); you may not use this file except in compliance
-   * with the License.  You may obtain a copy of the License at
-   *
-   *     http://www.apache.org/licenses/LICENSE-2.0
-   *
-   * Unless required by applicable law or agreed to in writing, software
-   * distributed under the License is distributed on an "AS IS" BASIS,
-   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   * See the License for the specific language governing permissions and
-   * limitations under the License.
-   */
 
   package com.ctm.sparkwordcount
 
+  import java.io.FileInputStream
+  import java.util.Properties
+
+  import org.apache.log4j.{Level, LogManager}
   import org.apache.spark.{SparkConf, SparkContext}
 
   object SparkWordCount {
-
+    var prop = new Properties()
+    val logger = LogManager.getRootLogger
+    logger.setLevel(Level.INFO)
       def main(args: Array[String]) {
+        try {
+          prop.load(new FileInputStream("src/main/resources/job.properties"))
+        } catch { case e: Exception =>
+          logger.error("Spark Wordcount template properties file not found" + e.printStackTrace())
+        }
+
+        val appName = prop.getProperty("appName")
+        val localCores = prop.getProperty("localCores")
+        val uiPort = prop.getProperty("uiPort")
         val conf = new SparkConf()
-        conf.set("spark.app.name", "SparkWordCount")
-        conf.set("spark.master", "local[4]")
-        conf.set("spark.ui.port", "36000") // Override the default port
+        conf.set("spark.app.name", appName)
+        conf.set("spark.master", localCores)
+        conf.set("spark.ui.port", uiPort) // Override the default port
 
         // Create a SparkContext with this configuration
-        val sc = new SparkContext(conf.setAppName("SparkWordCount"))
-      val textFile = sc.textFile("src/main/resources/inputfile.txt")
+        val sc = new SparkContext(conf)
+        val inputFile =  prop.getProperty("inputFile")
+        val textFile = sc.textFile(inputFile)
       val counts = textFile.flatMap(line => line.split(" ")).map(word => (word, 1)).reduceByKey(_ + _)
       counts.foreach(println)
       counts.take(50).foreach(println)
+        val cnt = counts.count()
+        logger.info("Count for the total number of words in the whole file is " + cnt)
     }
   }
